@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
@@ -8,6 +10,9 @@ class NotificationService {
   static Future<void> init() async {
     // Required for scheduling notifications based on timezones
     tz.initializeTimeZones();
+    final timeZone = await FlutterTimezone.getLocalTimezone();
+    final String timeZoneName = timeZone is String ? timeZone : (timeZone as dynamic).identifier;
+    tz.setLocalLocation(tz.getLocation(timeZoneName));
     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
@@ -30,15 +35,26 @@ class NotificationService {
         // Handle notification tap if needed
       },
     );
-    
-    // Explicitly request permissions for iOS
-    await _notificationsPlugin
-        .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
-        ?.requestPermissions(
-          alert: true,
-          badge: true,
-          sound: true,
-        );
+
+    await requestPermissions();
+  }
+
+  static Future<void> requestPermissions() async {
+    if (Platform.isAndroid) {
+      final androidImplementation = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+      // Request notification permission (Android 13+)
+      await androidImplementation?.requestNotificationsPermission();
+
+      // Request exact alarm permission (Android 13+)
+      // This is often required for high-precision alarms like this app uses.
+      await androidImplementation?.requestExactAlarmsPermission();
+    } else if (Platform.isIOS) {
+      await _notificationsPlugin
+          .resolvePlatformSpecificImplementation<IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true, critical: true);
+    }
   }
 
   static Future<void> showNotification({required int id, required String title, required String body}) async {
@@ -56,11 +72,7 @@ class NotificationService {
 
     const NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
-      iOS: DarwinNotificationDetails(
-        presentAlert: true,
-        presentBadge: true,
-        presentSound: true,
-      ),
+      iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
     );
 
     await _notificationsPlugin.show(id: id, title: title, body: body, notificationDetails: platformChannelSpecifics);
@@ -106,6 +118,18 @@ class NotificationService {
     required String body,
     required DateTime scheduledDate,
   }) async {
+    AndroidScheduleMode scheduleMode = AndroidScheduleMode.exactAllowWhileIdle;
+
+    if (Platform.isAndroid) {
+      final androidImplementation = _notificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+      final bool? canScheduleExactAlarms = await androidImplementation?.canScheduleExactNotifications();
+      if (canScheduleExactAlarms == false) {
+        // If not permitted, we MUST use an inexact mode to avoid a crash
+        scheduleMode = AndroidScheduleMode.inexactAllowWhileIdle;
+      }
+    }
+
     await _notificationsPlugin.zonedSchedule(
       id: id,
       title: title,
@@ -128,7 +152,7 @@ class NotificationService {
           interruptionLevel: InterruptionLevel.critical,
         ),
       ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+      androidScheduleMode: scheduleMode,
     );
   }
 }

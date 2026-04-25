@@ -24,7 +24,7 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
       body: ValueListenableBuilder(
         valueListenable: Hive.box<SessionModel>(AppConstants.sessionsBox).listenable(),
         builder: (context, Box<SessionModel> box, _) {
-          var sessions = box.values.toList();
+          var sessions = box.values.where((s) => s.status != SessionStatus.running).toList();
 
           // Filter
           if (_filter == 'Completed') {

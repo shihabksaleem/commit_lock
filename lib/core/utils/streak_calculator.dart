@@ -20,6 +20,7 @@ class StreakCalculator {
     final dateFormat = DateFormat('yyyy-MM-dd');
 
     for (var session in sessions) {
+      if (session.status == SessionStatus.running) continue;
       final dateStr = dateFormat.format(session.startTime);
       grouped.putIfAbsent(dateStr, () => []).add(session);
     }

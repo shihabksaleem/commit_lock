@@ -31,7 +31,7 @@ A Flutter-based habit tracking application that implements commitment-based acco
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/shihabksaleem/commit_lock.git
    cd commitlock
    ```
 
@@ -213,13 +213,7 @@ lib/
   - Penalty amount
 - [x] **Filter options**: All / Completed / Broken
 - [x] **Sort options**: Newest first / Oldest first
-- [x] **Summary statistics**:
-  - Total sessions
-  - Success rate (%)
-  - Total committed time
-  - Total penalties lost
-  - Total penalties saved
-- [x] Empty state when no sessions exist
+
 
 ### 7. Settings Screen
 - [x] Theme switcher: Light / Dark / System (persisted)
@@ -237,7 +231,7 @@ lib/
 
 ### Streak Calculation Logic
 
-The streak represents **consecutive days** where the user completed at least one session successfully.
+The streak represents **consecutive days** where the user achieved at least an 80% success rate (completed sessions / total sessions for that day).
 
 ### Penalty System
 
@@ -247,7 +241,6 @@ The penalty acts as **psychological accountability** - no actual payment is proc
 - User sets a penalty amount (e.g., ₹500) when creating a commitment
 - If session is **completed**: Penalty is counted as "saved"
 - If session is **broken**: Penalty is counted as "lost"
-- Statistics show total penalties lost vs saved across all sessions
 
 **Purpose:**
 - Creates mental cost for breaking commitments
@@ -269,32 +262,6 @@ The penalty acts as **psychological accountability** - no actual payment is proc
   - Simulator: iPhone 17 Pro Max
 - **Status**: ✅ Fully functional
 
-### iOS-Specific Setup
-
-**1. Install CocoaPods dependencies:**
-```bash
-cd ios
-pod install
-cd ..
-```
-
-**3. Notification permissions:**
-- App requests notification permissions on first launch
-- Critical for timer completion alerts
-- Users can manage in Settings > Notifications
-
-**4. Building for iOS:**
-```bash
-# Debug build
-flutter build ios --debug
-
-# Release build (requires signing)
-flutter build ios --release
-
-# Generate IPA for distribution
-flutter build ipa --release
-```
-
 ### iOS Known Limitations
 
 1. **Full-screen alarm on locked device**: 
@@ -308,7 +275,6 @@ flutter build ipa --release
    - Timer recovers correctly when app reopens
 
 3. **App blocking feature**:
-   - Not implementable on iOS without MDM profiles
    - Mock UI only (as per requirements)
 
 

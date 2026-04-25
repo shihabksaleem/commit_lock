@@ -229,7 +229,9 @@ class HomeScreen extends ConsumerWidget {
       builder: (context, Box<SessionModel> box, _) {
         final now = DateTime.now();
         final todaySessions = box.values.where((s) {
-          return s.startTime.year == now.year && s.startTime.month == now.month && s.startTime.day == now.day;
+          // Only show sessions from today that are NOT currently running
+          final isToday = s.startTime.year == now.year && s.startTime.month == now.month && s.startTime.day == now.day;
+          return isToday && s.status != SessionStatus.running;
         }).toList();
 
         final completedMinutes = todaySessions

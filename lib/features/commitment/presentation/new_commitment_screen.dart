@@ -157,7 +157,6 @@ class _NewCommitmentScreenState extends ConsumerState<NewCommitmentScreen> {
 
   Widget _buildCategoryDropdown(List<String> habits) {
     final items = habits.map((h) => DropdownMenuItem(value: h, child: Text(h))).toList();
-    items.add(const DropdownMenuItem(value: 'Custom', child: Text('Custom Habit +')));
 
     return DropdownButtonFormField<String>(
       value: _selectedCategory,
@@ -221,7 +220,7 @@ class _NewCommitmentScreenState extends ConsumerState<NewCommitmentScreen> {
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             decoration: InputDecoration(
-              hintText: 'Enter amount',
+              hintText: 'Enter duration',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
           ),
